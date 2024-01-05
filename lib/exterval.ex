@@ -1,5 +1,5 @@
 defmodule Exterval do
-  @moduledoc """
+  @moduledoc ~S"""
   Real-valued intervals with support for the `Enumerable` protocol.
 
   ## Installation
@@ -10,18 +10,18 @@ defmodule Exterval do
   ```elixir
   def deps do
   [
-    {:exterval, "~> 0.1.0"}
+    {:exterval, "~> 0.1.1"}
   ]
   end
   ```
 
   ## Creation
 
-  The entry point for creating an interval is the `~I` sigil:
+  The entry point for creating an interval is the `~i` sigil:
 
   ```elixir
   iex> import Exterval
-  iex> ~I<(1, 10]>
+  iex> ~i<(1, 10]>
   (1.0,10.0]
   ```
 
@@ -39,14 +39,25 @@ defmodule Exterval do
 
   ```elixir
   iex> import Exterval
-  iex> ~I<[1, 10)//2>
+  iex> ~i<[1, 10)//2>
   [1, 10)//2
-  iex> ~I<[1, 10)//2> |> Enum.to_list()
+  iex> ~i<[1, 10)//2> |> Enum.to_list()
   [1.0, 3.0, 5.0, 7.0, 9.0]
-  iex> ~I<[1, 10)//2> |> Enum.reduce(&+/2)
+  iex> ~i<[1, 10)//2> |> Enum.reduce(&+/2)
   25.0
-  iex> ~I<[-1, 3)//-0.5> |> Enum.to_list()
+  iex> ~i<[-1, 3)//-0.5> |> Enum.to_list()
   [2.5, 2.0, 1.5, 1.0, 0.5, 0.0, -0.5, -1.0]
+  ```
+
+  You can substitute variables into an interval using string interpolation, since the contents of the interval are just strings.
+
+  ```elixir
+  iex> import Exterval
+  iex> min = 1
+  iex> max = 10
+  iex> step = 2
+  iex> ~i<[#{min}, #{max})//#{step}>
+  [1.0,10.0)//2.0
   ```
 
   ## Size
@@ -59,16 +70,18 @@ defmodule Exterval do
 
   ```elixir
   iex> import Exterval
-  iex> ~I<[1, 10]> |> Enum.count()
+  iex> ~i<[1, 10]> |> Enum.count()
   :infinity
-  iex> ~I<[1, 10)//2> |> Enum.count()
+  iex> ~i<[1, 10)//2> |> Enum.count()
   4
-  iex> ~I<[-2,-2]//1.0> |> Enum.count()
+  iex> ~i<[-2,-2]//1.0> |> Enum.count()
   1
-  iex> ~I<[1,2]//0.5> |> Enum.count()
+  iex> ~i<[1,2]//0.5> |> Enum.count()
   3
-  iex> ~I<[-2,-1]//0.75> |> Enum.count()
+  iex> ~i<[-2,-1]//0.75> |> Enum.count()
   2
+  iex> ~i<[1,2]//-0.5> |> Enum.count
+  3
   ```
 
   ## Membership
@@ -77,11 +90,11 @@ defmodule Exterval do
 
   ```elixir
   iex> import Exterval
-  iex> 1 in ~I<[1, 10]>
+  iex> 1 in ~i<[1, 10]>
   true
-  iex> 1 in ~I<[1, 10)//2>
+  iex> 1 in ~i<[1, 10)//2>
   true
-  iex> 3 in ~I<(1, 10)//2>
+  iex> 3 in ~i<(1, 10)//2>
   true
   ```
 
@@ -127,7 +140,7 @@ defmodule Exterval do
     def reduce(%Exterval{}, _, _), do: {:halt, :infinity}
   end
 
-  def sigil_I(pattern, []) do
+  def sigil_i(pattern, []) do
     matches =
       Regex.named_captures(
         ~r/^(?P<left>\[|\()\s*(?P<min>[-+]?(?:\d+|\d+\.\d+)(?:[eE][-+]?\d+)?|:neg_infinity)\s*,\s*(?P<max>[-+]?(?:\d+|\d+\.\d+)(?:[eE][-+]?\d+)?|:infinity)\s*(?P<right>]|\))(?:\/\/(?P<step>[-+]?(?:[1-9]+|\d+\.\d+)(?:[eE][-+]?\d+)?))?$/,
@@ -203,9 +216,6 @@ defmodule Exterval do
   def size(%__MODULE__{min: min, max: max})
       when min in [:infinity, :neg_infinity] or max in [:infinity, :neg_infinity],
       do: {:error, Infinity}
-
-  def size(%__MODULE__{min: min, max: max, step: step}) when step > 0 and min > max, do: 0
-  def size(%__MODULE__{min: min, max: max, step: step}) when step < 0 and min < max, do: 0
 
   def size(%__MODULE__{left: left, right: right, min: min, max: max, step: step}) when step < 0 do
     case {left, right} do

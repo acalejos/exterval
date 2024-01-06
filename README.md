@@ -90,8 +90,8 @@
   true
   iex> 1 in ~i<[1, 10)//2>
   true
-  iex> 3 in ~i<(1, 10)//2>
-  true
+  iex> 1 in ~i<(1, 10)//2>
+  false
   ```
 
   You can also check if an interval is a subset of another interval using `in` or `Enum.member?/2`.

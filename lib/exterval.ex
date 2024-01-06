@@ -297,48 +297,48 @@ defmodule Exterval do
       end
     end
 
-    defp reduce(_min, _max, _right, {:halt, acc}, _fun, _step) do
+    defp reduce(_min, _max, _closing, {:halt, acc}, _fun, _step) do
       {:halted, acc}
     end
 
-    defp reduce(min, max, right, {:suspend, acc}, fun, step) do
-      {:suspended, acc, &reduce(min, max, right, &1, fun, step)}
+    defp reduce(min, max, closing, {:suspend, acc}, fun, step) do
+      {:suspended, acc, &reduce(min, max, closing, &1, fun, step)}
     end
 
-    defp reduce(:neg_infinity, _max, _right, {:cont, acc}, _fun, step) when step > 0 do
+    defp reduce(:neg_infinity, _max, _closing, {:cont, acc}, _fun, step) when step > 0 do
       {:done, acc}
     end
 
-    defp reduce(_min, :infinity, _right, {:cont, acc}, _fun, step) when step < 0 do
+    defp reduce(_min, :infinity, _closing, {:cont, acc}, _fun, step) when step < 0 do
       {:done, acc}
     end
 
-    defp reduce(min, :infinity = max, right, {:cont, acc}, fun, step) do
-      reduce(min + step, max, right, fun.(min, acc), fun, step)
+    defp reduce(min, :infinity = max, closing, {:cont, acc}, fun, step) do
+      reduce(min + step, max, closing, fun.(min, acc), fun, step)
     end
 
-    defp reduce(:neg_infinity = min, max, right, {:cont, acc}, fun, step) do
-      reduce(min + step, max, right, fun.(min, acc), fun, step)
+    defp reduce(:neg_infinity = min, max, closing, {:cont, acc}, fun, step) do
+      reduce(min + step, max, closing, fun.(min, acc), fun, step)
     end
 
-    defp reduce(min, max, "]" = right, {:cont, acc}, fun, step)
+    defp reduce(min, max, "]" = closing, {:cont, acc}, fun, step)
          when min <= max do
-      reduce(min + step, max, right, fun.(min, acc), fun, step)
+      reduce(min + step, max, closing, fun.(min, acc), fun, step)
     end
 
-    defp reduce(min, max, ")" = right, {:cont, acc}, fun, step)
+    defp reduce(min, max, ")" = closing, {:cont, acc}, fun, step)
          when min < max do
-      reduce(min + step, max, right, fun.(min, acc), fun, step)
+      reduce(min + step, max, closing, fun.(min, acc), fun, step)
     end
 
-    defp reduce(min, max, "[" = right, {:cont, acc}, fun, step)
+    defp reduce(min, max, "[" = closing, {:cont, acc}, fun, step)
          when min <= max do
-      reduce(min, max + step, right, fun.(max, acc), fun, step)
+      reduce(min, max + step, closing, fun.(max, acc), fun, step)
     end
 
-    defp reduce(min, max, "(" = right, {:cont, acc}, fun, step)
+    defp reduce(min, max, "(" = closing, {:cont, acc}, fun, step)
          when min < max do
-      reduce(min, max + step, right, fun.(max, acc), fun, step)
+      reduce(min, max + step, closing, fun.(max, acc), fun, step)
     end
 
     defp reduce(_, _, _, {:cont, acc}, _fun, _up) do

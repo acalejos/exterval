@@ -10,7 +10,7 @@ defmodule Exterval do
   ```elixir
   def deps do
   [
-    {:exterval, "~> 0.1.1"}
+    {:exterval, "~> 0.2"}
   ]
   end
   ```
